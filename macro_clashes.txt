@@ -1,0 +1,88 @@
+
+Sub CreateWorksheets()
+    Dim wb As Workbook
+    Dim sourceFolder As String
+    Dim fileName As String
+    Dim columnNewIssues As String
+    Dim columnActiveIssues As String
+    Dim columnBuildingPart As String
+    Dim sourceFile As String
+    Dim ws As Worksheet
+    Dim targetSheet As Worksheet
+    Dim lastColumn As Integer
+    Dim lastRow As Integer
+    Dim data_sht As Worksheet
+    Dim indexBuildingPart As Integer
+    Dim nameDataSheet As String
+    Dim partBuilding As String
+    Dim firstRow As Integer
+    Dim partBuildingColumn As Integer
+    
+    
+    
+    firstRow = 3
+    partBuildingColumn = 3
+    
+    
+    
+
+    ' Change this to the folder that contains your source data files
+    sourceFolder = ThisWorkbook.Path & "\SourceData\"
+
+    Set targetSheet = ThisWorkbook.Sheets("Navis - Clashes - EG")
+    targetSheet.Activate
+
+    ' Get the last column in the target sheet
+    lastColumn = targetSheet.Cells(3, Columns.Count).End(xlToLeft).Column
+    Debug.Print lastColumn
+    lastRow = targetSheet.Cells(Rows.Count, 4).End(xlUp).Row
+    Debug.Print lastRow
+    fileName = Dir(sourceFolder & "*.xlsx")
+
+    Do While fileName <> ""
+        sourceFile = sourceFolder & fileName
+        Set wb = Workbooks.Open(sourceFile)
+        
+        nameDataSheet = "Sheet1"
+        ' sheet with data can have English name "Sheet1" or German name "Tabelle1"
+        On Error Resume Next
+        Set data_sht = wb.Sheets(nameDataSheet)
+        On Error GoTo 0
+        
+        If data_sht Is Nothing Then
+        nameDataSheet = "Tabelle1"
+        End If
+        
+        columnNewIssues = "'" & sourceFolder & "[" & fileName & "]" & nameDataSheet & "'!$R:$R"
+        columnActiveIssues = "'" & sourceFolder & "[" & fileName & "]" & nameDataSheet & "'!$S:$S"
+        columnBuildingPart = "'" & sourceFolder & "[" & fileName & "]" & nameDataSheet & "'!$G:$G"
+        
+        
+        Debug.Print columnNewIssues
+        Debug.Print columnActiveIssues
+        Debug.Print columnBuildingPart
+        
+        targetSheet.Cells(firstRow - 1, lastColumn + 1) = """" & Left(fileName, 10) & """"
+        
+        For indexBuildingPart = 1 To 12
+            partBuilding = """G00_" & targetSheet.Cells(firstRow + (indexBuildingPart - 1) * 3, partBuildingColumn).Value & "_All_SELF"""
+        
+            targetSheet.Cells(firstRow + (indexBuildingPart - 1) * 3, lastColumn + 1) = "=IFERROR(LOOKUP(" & partBuilding & "," & columnBuildingPart & "," & columnNewIssues & "),0)"
+            targetSheet.Cells(firstRow + 1 + (indexBuildingPart - 1) * 3, lastColumn + 1) = "=IFERROR(LOOKUP(" & partBuilding & "," & columnBuildingPart & "," & columnActiveIssues & "),0)"
+            targetSheet.Cells(firstRow + 2 + (indexBuildingPart - 1) * 3, lastColumn + 1) = "=SUM(" & targetSheet.Cells(firstRow + (indexBuildingPart - 1) * 3, lastColumn + 1).Address & ":" & targetSheet.Cells(firstRow + 1 + (indexBuildingPart - 1) * 3, lastColumn + 1).Address & ")"
+        
+        Next indexBuildingPart
+        lastColumn = lastColumn + 1
+        
+        
+        
+        
+        
+        fileName = Dir()
+        
+    Loop
+End Sub
+
+
+
+
