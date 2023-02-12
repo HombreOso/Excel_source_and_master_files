@@ -1,3 +1,6 @@
 *.xlsx
 *.xlsm
 *SourceData/*
+*.7z
+*.zip
+*.gzip
