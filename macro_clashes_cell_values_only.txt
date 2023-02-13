@@ -1,0 +1,106 @@
+
+Sub CreateWorksheets()
+    Dim wb As Workbook
+    Dim sourceFolder As String
+    Dim fileName As String
+    Dim columnNewIssues As Range
+    Dim columnActiveIssues As Range
+    Dim columnBuildingPart As Range
+    Dim sourceFile As String
+    Dim ws As Worksheet
+    Dim targetSheet As Worksheet
+    Dim lastColumn As Integer
+    Dim lastRow As Integer
+    Dim data_sht As Worksheet
+    Dim indexBuildingPart As Integer
+    Dim nameDataSheet As String
+    Dim partBuilding As String
+    Dim firstRow As Integer
+    Dim partBuildingColumn As Integer
+    Dim currentNewIssueNum As Integer
+    Dim currentActiveIssueNum As Integer
+    
+    
+    
+    
+    firstRow = 3
+    partBuildingColumn = 3
+    
+    
+    
+
+    ' Change this to the folder that contains your source data files
+    sourceFolder = "C:\Users\aemig\OneDrive - BuroHappold\BIM\2023-02-08_source_master_files-20230209T084606Z-001\Excel_source_and_master_files\SourceData\"
+
+    Set targetSheet = ThisWorkbook.Sheets("Navis - Clashes - EG")
+    targetSheet.Activate
+
+    ' Get the last column in the target sheet
+    lastColumn = 6
+    ' lastColumn = targetSheet.Cells(3, Columns.Count).End(xlToLeft).Column
+    Debug.Print lastColumn
+    lastRow = targetSheet.Cells(Rows.Count, 4).End(xlUp).Row
+    Debug.Print lastRow
+    fileName = Dir(sourceFolder & "*.xlsx")
+
+    Do While fileName <> ""
+        sourceFile = sourceFolder & fileName
+        Set wb = Workbooks.Open(sourceFile)
+        
+        nameDataSheet = "Sheet1"
+        ' sheet with data can have English name "Sheet1" or German name "Tabelle1"
+        On Error Resume Next
+        Set data_sht = wb.Sheets(nameDataSheet)
+        On Error GoTo 0
+        
+        If data_sht Is Nothing Then
+        nameDataSheet = "Tabelle1"
+        Set data_sht = wb.Sheets(nameDataSheet)
+        End If
+        
+        Debug.Print nameDataSheet
+        
+        
+        Set columnNewIssues = data_sht.Range("$R:$R")
+        Set columnActiveIssues = data_sht.Range("$S:$S")
+        Set columnBuildingPart = data_sht.Range("$G:$G")
+
+        targetSheet.Cells(firstRow - 1, lastColumn + 1) = """" & Left(fileName, 10) & """"
+        
+        For indexBuildingPart = 1 To 12
+            partBuilding = "G00_" & targetSheet.Cells(firstRow + (indexBuildingPart - 1) * 3, partBuildingColumn).Value & "_All_SELF"
+            
+            
+            Debug.Print partBuilding
+            If data_sht Is Nothing Then
+                Debug.Print partBuilding
+            Else
+                Debug.Print data_sht.Name & "ok"
+            End If
+            
+            currentNewIssueNum = columnBuildingPart.Find(partBuilding).Offset(, 11).Value
+            currentActiveIssueNum = columnBuildingPart.Find(partBuilding).Offset(, 12).Value
+            
+            
+            targetSheet.Cells(firstRow + (indexBuildingPart - 1) * 3, lastColumn + 1) = columnBuildingPart.Find(partBuilding).Offset(, 11)
+            
+            targetSheet.Cells(firstRow + 1 + (indexBuildingPart - 1) * 3, lastColumn + 1) = columnBuildingPart.Find(partBuilding).Offset(, 12)
+            
+            targetSheet.Cells(firstRow + 2 + (indexBuildingPart - 1) * 3, lastColumn + 1) = currentNewIssueNum + currentActiveIssueNum
+        
+        Next indexBuildingPart
+        lastColumn = lastColumn + 1
+        
+        
+        
+        
+        
+        fileName = Dir()
+        
+    Loop
+End Sub
+
+
+
+
+
