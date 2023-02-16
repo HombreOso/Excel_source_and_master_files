@@ -96,7 +96,6 @@ Sub CreateWorksheets()
         
         
         fileName = Dir()
-
 	wb.Close
         
     Loop
